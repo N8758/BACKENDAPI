@@ -3,7 +3,16 @@ from .schemas import RewriteRequest, RewriteResponse, RewriteResult
 from .tasks import rewrite_task, celery_app
 from .cache import get_cache
 
-app = FastAPI()
+app = FastAPI(
+    title="Tone Rewriter API",
+    description="GenAI-powered API to rewrite text in different tones",
+    version="1.0.0"
+)
+
+# ✅ Root route to avoid 404
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to the Tone Rewriter API 🚀"}
 
 @app.post("/rewrite", response_model=RewriteResponse)
 def submit_rewrite(request: RewriteRequest):
@@ -24,7 +33,7 @@ def get_result(task_id: str):
     result = celery_app.AsyncResult(task_id)
     if result.ready():
         try:
-            final_result = str(result.result)  # Ensure it's a string
+            final_result = str(result.result)
             return RewriteResult(result=final_result)
         except Exception as e:
             return RewriteResult(result=f"Error: {str(e)}")
